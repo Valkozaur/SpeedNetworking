@@ -40,6 +40,27 @@ export function CreateRoomForm() {
         />
       </label>
 
+      <div className="grid gap-4 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-900">Organization name</span>
+          <input
+            name="organizationName"
+            placeholder="European Bank for Reconstruction and Development"
+            className="h-12 rounded-md border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-900">Logo URL</span>
+          <input
+            name="logoUrl"
+            type="url"
+            placeholder="https://example.com/logo.png"
+            className="h-12 rounded-md border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          />
+        </label>
+      </div>
+
       <label className="grid gap-2">
         <span className="text-sm font-semibold text-slate-900">Conversation categories</span>
         <textarea

@@ -1,0 +1,3 @@
+ALTER TABLE rooms
+  ADD COLUMN IF NOT EXISTS organization_name text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS logo_url text NOT NULL DEFAULT '';

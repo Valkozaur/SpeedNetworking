@@ -14,9 +14,10 @@ import { JoinRoomForm } from "@/components/join-room-form";
 import { ParticipantAutoRefresh } from "@/components/participant-auto-refresh";
 import { ParticipantScanner } from "@/components/participant-scanner";
 import { QrCode } from "@/components/qr-code";
+import { RoomBrandMark } from "@/components/room-brand-mark";
 import { absoluteUrl } from "@/lib/app-url";
 import { roomThemeStyle } from "@/lib/customization";
-import { getMilestones } from "@/lib/scoring";
+import { formatDuration, getMilestones } from "@/lib/scoring";
 import { getParticipantState, getPublicRoom } from "@/lib/rooms";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +82,10 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
         >
           <div className="w-full min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur sm:p-7">
             <div className="mb-6 grid gap-3">
+              <RoomBrandMark
+                organizationName={publicRoom.room.organizationName}
+                logoUrl={publicRoom.room.logoUrl}
+              />
               <div className="inline-flex w-fit items-center gap-2 rounded-md bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700">
                 <QrCodeIcon className="h-4 w-4" />
                 Category collection
@@ -138,6 +143,10 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
       >
         <section className="grid min-w-0 gap-5">
           <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
+            <RoomBrandMark
+              organizationName={state.room.organizationName}
+              logoUrl={state.room.logoUrl}
+            />
             <p className="break-words text-sm font-bold uppercase tracking-[0.16em] text-sky-700">
               {state.room.title}
             </p>
@@ -331,6 +340,11 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
                     <p className="text-sm text-slate-500">
                       {entry.score}/{entry.targetTotal} categories
                     </p>
+                    {entry.isComplete ? (
+                      <p className="mt-1 text-xs font-bold text-slate-500">
+                        Final time {formatDuration(entry.completionDurationMs)}
+                      </p>
+                    ) : null}
                   </div>
                   {entry.isComplete ? (
                     <span className="rounded-md bg-sky-100 px-2 py-1 text-xs font-bold text-sky-700">

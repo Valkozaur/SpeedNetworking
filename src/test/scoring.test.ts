@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getMilestones, rankParticipants } from "@/lib/scoring";
+import { formatDuration, getMilestones, rankParticipants } from "@/lib/scoring";
 
 describe("rankParticipants", () => {
-  it("ranks completed participants by earliest completion time", () => {
+  it("ranks completed participants by fastest elapsed completion time", () => {
     const ranked = rankParticipants([
       {
         id: "late",
@@ -19,13 +19,17 @@ describe("rankParticipants", () => {
         displayName: "Early",
         score: 3,
         targetTotal: 3,
-        createdAt: "2026-05-12T09:00:00Z",
+        createdAt: "2026-05-12T08:00:00Z",
         lastClaimAt: "2026-05-12T09:05:00Z",
         completionAt: "2026-05-12T09:05:00Z",
       },
     ]);
 
-    expect(ranked.map((participant) => participant.id)).toEqual(["early", "late"]);
+    expect(ranked.map((participant) => participant.id)).toEqual(["late", "early"]);
+    expect(ranked.map((participant) => participant.completionDurationMs)).toEqual([
+      10 * 60 * 1000,
+      65 * 60 * 1000,
+    ]);
   });
 
   it("ranks in-progress participants by score then timestamp", () => {
@@ -64,6 +68,14 @@ describe("rankParticipants", () => {
       "two-late",
       "one",
     ]);
+  });
+});
+
+describe("formatDuration", () => {
+  it("formats finish durations for leaderboard display", () => {
+    expect(formatDuration(45_000)).toBe("45s");
+    expect(formatDuration(8 * 60_000 + 12_000)).toBe("8m 12s");
+    expect(formatDuration(2 * 3_600_000 + 5 * 60_000 + 3_000)).toBe("2h 5m 3s");
   });
 });
 

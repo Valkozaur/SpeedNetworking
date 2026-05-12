@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Printer } from "lucide-react";
 
 import { QrCode } from "@/components/qr-code";
+import { RoomBrandMark } from "@/components/room-brand-mark";
 import { absoluteUrl } from "@/lib/app-url";
 import { roomThemeStyle } from "@/lib/customization";
 import { getAdminRoom } from "@/lib/rooms";
@@ -36,6 +37,11 @@ export default async function TargetBadgesPage({ params, searchParams }: BadgePa
       <div className="mx-auto grid w-full max-w-6xl gap-5 print:max-w-none">
         <header className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur print:hidden sm:flex-row sm:items-center sm:justify-between">
           <div>
+            <RoomBrandMark
+              organizationName={data.room.organizationName}
+              logoUrl={data.room.logoUrl}
+              compact
+            />
             <Link
               href={`/admin/${data.room.id}?token=${encodeURIComponent(data.room.adminToken)}`}
               className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
@@ -61,6 +67,11 @@ export default async function TargetBadgesPage({ params, searchParams }: BadgePa
                 className="break-inside-avoid rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur print:rounded-none print:border-slate-300 print:bg-white print:shadow-none"
               >
                 <div className="mb-4">
+                  <RoomBrandMark
+                    organizationName={data.room.organizationName}
+                    logoUrl={data.room.logoUrl}
+                    compact
+                  />
                   <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
                     Person QR badge
                   </p>

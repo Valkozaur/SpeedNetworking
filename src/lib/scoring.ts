@@ -11,6 +11,7 @@ export type LeaderboardInput = {
 export type RankedParticipant = LeaderboardInput & {
   rank: number;
   isComplete: boolean;
+  completionDurationMs: number | null;
 };
 
 function timeValue(value: Date | string | null) {
@@ -21,19 +22,42 @@ function timeValue(value: Date | string | null) {
   return new Date(value).getTime();
 }
 
+function durationValue(participant: LeaderboardInput) {
+  if (!participant.completionAt) {
+    return null;
+  }
+
+  const durationMs = timeValue(participant.completionAt) - timeValue(participant.createdAt);
+
+  return Number.isFinite(durationMs) ? Math.max(0, durationMs) : null;
+}
+
 export function rankParticipants(
   participants: LeaderboardInput[],
 ): RankedParticipant[] {
   const ranked = participants
-    .map((participant) => ({
-      ...participant,
-      isComplete:
+    .map((participant) => {
+      const isComplete =
         participant.targetTotal > 0 &&
         participant.score >= participant.targetTotal &&
-        Boolean(participant.completionAt),
-    }))
+        Boolean(participant.completionAt);
+
+      return {
+        ...participant,
+        isComplete,
+        completionDurationMs: isComplete ? durationValue(participant) : null,
+      };
+    })
     .sort((left, right) => {
       if (left.isComplete && right.isComplete) {
+        const durationDelta =
+          (left.completionDurationMs ?? Number.POSITIVE_INFINITY) -
+          (right.completionDurationMs ?? Number.POSITIVE_INFINITY);
+
+        if (durationDelta !== 0) {
+          return durationDelta;
+        }
+
         return timeValue(left.completionAt) - timeValue(right.completionAt);
       }
 
@@ -58,6 +82,38 @@ export function rankParticipants(
     ...participant,
     rank: index + 1,
   }));
+}
+
+export function formatDuration(durationMs: number | null) {
+  if (durationMs === null) {
+    return "Not finished";
+  }
+
+  const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${seconds}s`;
+}
+
+export function formatCompletionTime(value: Date | string | null) {
+  if (!value) {
+    return "No final submission";
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  }).format(new Date(value));
 }
 
 export const MILESTONES = [

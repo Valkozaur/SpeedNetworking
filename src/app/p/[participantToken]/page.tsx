@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RoomBrandMark } from "@/components/room-brand-mark";
 import { getParticipantBadge } from "@/lib/rooms";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,12 @@ export default async function ParticipantBadgePage({ params }: ParticipantBadgeP
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-950">
       <section className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-xl place-items-center">
         <div className="w-full rounded-md border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-7">
+          <div className="mb-4 flex justify-center">
+            <RoomBrandMark
+              organizationName={data.room.organizationName}
+              logoUrl={data.room.logoUrl}
+            />
+          </div>
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
             {data.room.title}
           </p>

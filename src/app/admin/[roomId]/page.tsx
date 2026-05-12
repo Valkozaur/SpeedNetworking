@@ -18,10 +18,12 @@ import type { ReactNode } from "react";
 import { reviewCategoryClaimAction } from "@/app/actions";
 import { AdminRememberRoom } from "@/components/admin-remember-room";
 import { CopyButton } from "@/components/copy-button";
+import { RoomBrandMark } from "@/components/room-brand-mark";
 import { RoomCustomizationForm } from "@/components/room-customization-form";
 import { absoluteUrl } from "@/lib/app-url";
 import { roomThemeStyle } from "@/lib/customization";
 import { getAdminRoom, type ClaimStatus } from "@/lib/rooms";
+import { formatCompletionTime, formatDuration } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -75,6 +77,10 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
   const topFive = data.leaderboard.slice(0, 5);
   const approvedTopFive = data.approvedLeaderboard.slice(0, 5);
   const validatedWinner = data.approvedLeaderboard.find((entry) => entry.isComplete);
+  const completedParticipants = data.leaderboard.filter((entry) => entry.isComplete);
+  const approvedCompletedParticipants = data.approvedLeaderboard.filter(
+    (entry) => entry.isComplete,
+  );
 
   return (
     <main
@@ -88,6 +94,8 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
           joinCode: data.room.joinCode,
           adminToken: data.room.adminToken,
           accentColor: data.room.accentColor,
+          organizationName: data.room.organizationName,
+          logoUrl: data.room.logoUrl,
         }}
       />
       <div
@@ -97,6 +105,10 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
         <header className="grid gap-4 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
+              <RoomBrandMark
+                organizationName={data.room.organizationName}
+                logoUrl={data.room.logoUrl}
+              />
               <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-700">
                 Admin dashboard
               </p>
@@ -161,6 +173,11 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
                           <p className="text-sm text-slate-500">
                             {entry.score}/{entry.targetTotal} categories
                           </p>
+                          {entry.isComplete ? (
+                            <p className="mt-1 text-xs font-bold text-slate-500">
+                              Final time {formatDuration(entry.completionDurationMs)}
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                       {entry.isComplete ? (
@@ -181,8 +198,61 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
             <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between gap-3">
                 <div>
+                  <h2 className="text-xl font-black tracking-tight">Finish times</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Ranked by elapsed time from joining to final category submission.
+                  </p>
+                </div>
+                <Clock3 className="h-6 w-6 text-sky-500" />
+              </div>
+
+              <div className="mt-4 grid gap-2">
+                {completedParticipants.length > 0 ? (
+                  completedParticipants.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      className={
+                        index === 0
+                          ? "grid min-w-0 gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 sm:grid-cols-[auto_1fr_auto]"
+                          : "grid min-w-0 gap-3 rounded-md border border-slate-100 bg-slate-50 p-3 sm:grid-cols-[auto_1fr_auto]"
+                      }
+                    >
+                      <div className="grid h-10 w-10 place-items-center rounded-md bg-white text-sm font-black text-slate-950 shadow-sm">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="break-words font-bold text-slate-950">
+                          {entry.displayName}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-slate-500">
+                          Final submission {formatCompletionTime(entry.completionAt)}
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-lg font-black text-slate-950">
+                          {formatDuration(entry.completionDurationMs)}
+                        </p>
+                        <p className="text-xs font-semibold text-slate-500">
+                          {entry.score}/{entry.targetTotal}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">
+                    No one has submitted all categories yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <div>
                   <h2 className="text-xl font-black tracking-tight">Validated standings</h2>
-                  <p className="mt-1 text-sm text-slate-500">Approved claims only.</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Approved claims only, with final times for completed boards.
+                  </p>
                 </div>
                 <CheckCircle2 className="h-6 w-6 text-emerald-500" />
               </div>
@@ -195,7 +265,26 @@ export default async function AdminRoomPage({ params, searchParams }: AdminPageP
               ) : null}
 
               <div className="mt-4 grid gap-2">
-                {approvedTopFive.length > 0 ? (
+                {approvedCompletedParticipants.length > 0 ? (
+                  approvedCompletedParticipants.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      className="grid min-w-0 gap-2 rounded-md bg-slate-50 p-3 sm:grid-cols-[1fr_auto]"
+                    >
+                      <div className="min-w-0">
+                        <p className="break-words font-bold text-slate-950">
+                          #{index + 1} {entry.displayName}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-slate-500">
+                          Approved finish {formatCompletionTime(entry.completionAt)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-black text-slate-950">
+                        {formatDuration(entry.completionDurationMs)}
+                      </p>
+                    </div>
+                  ))
+                ) : approvedTopFive.length > 0 ? (
                   approvedTopFive.map((entry) => (
                     <div
                       key={entry.id}

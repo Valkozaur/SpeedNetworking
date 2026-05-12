@@ -6,6 +6,8 @@ export type LocalAdminRoom = {
   joinCode: string;
   adminToken: string;
   accentColor: string;
+  organizationName?: string;
+  logoUrl?: string;
   updatedAt: string;
 };
 

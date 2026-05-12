@@ -5,6 +5,7 @@ import {
   getThemeById,
   getThemePreset,
   sanitizeAccentColor,
+  sanitizeLogoUrl,
 } from "@/lib/customization";
 import { query, transaction } from "@/lib/db";
 import { rankParticipants, type RankedParticipant } from "@/lib/scoring";
@@ -25,6 +26,8 @@ export type Room = {
   questions: string[];
   subtitle: string;
   hostName: string;
+  organizationName: string;
+  logoUrl: string;
   themePreset: string;
   accentColor: string;
   createdAt: Date;
@@ -100,6 +103,8 @@ type RoomRow = {
   questions: string[];
   subtitle: string;
   host_name: string;
+  organization_name: string;
+  logo_url: string;
   theme_preset: string;
   accent_color: string;
   created_at: Date;
@@ -170,6 +175,8 @@ function toRoom(row: RoomRow): Room {
     questions: row.questions,
     subtitle: row.subtitle,
     hostName: row.host_name,
+    organizationName: row.organization_name,
+    logoUrl: row.logo_url,
     themePreset: row.theme_preset,
     accentColor: row.accent_color,
     createdAt: row.created_at,
@@ -183,6 +190,8 @@ function roomCustomizationFromForm(formData: FormData) {
   return {
     subtitle: cleanRoomText(formData.get("subtitle"), 180),
     hostName: cleanRoomText(formData.get("hostName"), 80),
+    organizationName: cleanRoomText(formData.get("organizationName"), 100),
+    logoUrl: sanitizeLogoUrl(formData.get("logoUrl")),
     themePreset,
     accentColor: sanitizeAccentColor(formData.get("accentColor"), theme.accent),
   };
@@ -439,10 +448,12 @@ export async function createRoom(formData: FormData) {
           questions,
           subtitle,
           host_name,
+          organization_name,
+          logo_url,
           theme_preset,
           accent_color
         )
-        VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9)
+        VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11)
       `,
       [
         roomId,
@@ -452,6 +463,8 @@ export async function createRoom(formData: FormData) {
         JSON.stringify(questions),
         customization.subtitle,
         customization.hostName,
+        customization.organizationName,
+        customization.logoUrl,
         customization.themePreset,
         customization.accentColor,
       ],
@@ -498,8 +511,10 @@ export async function updateRoomCustomization(
           questions = $4::jsonb,
           subtitle = $5,
           host_name = $6,
-          theme_preset = $7,
-          accent_color = $8
+          organization_name = $7,
+          logo_url = $8,
+          theme_preset = $9,
+          accent_color = $10
         WHERE id = $1 AND admin_token = $2
         RETURNING *
       `,
@@ -510,6 +525,8 @@ export async function updateRoomCustomization(
         JSON.stringify(questions),
         customization.subtitle,
         customization.hostName,
+        customization.organizationName,
+        customization.logoUrl,
         customization.themePreset,
         customization.accentColor,
       ],
@@ -967,6 +984,8 @@ export async function getTargetByToken(targetToken: string) {
       room_questions: string[];
       room_subtitle: string;
       room_host_name: string;
+      room_organization_name: string;
+      room_logo_url: string;
       room_theme_preset: string;
       room_accent_color: string;
     }
@@ -979,6 +998,8 @@ export async function getTargetByToken(targetToken: string) {
         rooms.questions AS room_questions,
         rooms.subtitle AS room_subtitle,
         rooms.host_name AS room_host_name,
+        rooms.organization_name AS room_organization_name,
+        rooms.logo_url AS room_logo_url,
         rooms.theme_preset AS room_theme_preset,
         rooms.accent_color AS room_accent_color
       FROM targets
@@ -1003,6 +1024,8 @@ export async function getTargetByToken(targetToken: string) {
       questions: row.room_questions,
       subtitle: row.room_subtitle,
       hostName: row.room_host_name,
+      organizationName: row.room_organization_name,
+      logoUrl: row.room_logo_url,
       themePreset: row.room_theme_preset,
       accentColor: row.room_accent_color,
     },
@@ -1014,13 +1037,17 @@ export async function getParticipantBadge(participantToken: string) {
     ParticipantRow & {
       room_title: string;
       room_join_code: string;
+      room_organization_name: string;
+      room_logo_url: string;
     }
   >(
     `
       SELECT
         participants.*,
         rooms.title AS room_title,
-        rooms.join_code AS room_join_code
+        rooms.join_code AS room_join_code,
+        rooms.organization_name AS room_organization_name,
+        rooms.logo_url AS room_logo_url
       FROM participants
       JOIN rooms ON rooms.id = participants.room_id
       WHERE participants.participant_token = $1
@@ -1039,6 +1066,8 @@ export async function getParticipantBadge(participantToken: string) {
     room: {
       title: row.room_title,
       joinCode: row.room_join_code,
+      organizationName: row.room_organization_name,
+      logoUrl: row.room_logo_url,
     },
   };
 }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { QrCode } from "@/components/qr-code";
+import { RoomBrandMark } from "@/components/room-brand-mark";
 import { absoluteUrl } from "@/lib/app-url";
 import { roomThemeStyle } from "@/lib/customization";
 import { getTargetByToken } from "@/lib/rooms";
@@ -33,6 +34,10 @@ export default async function TargetPage({ params }: TargetPageProps) {
         style={{ width: "min(100%, calc(100vw - 2rem))" }}
       >
         <section className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
+          <RoomBrandMark
+            organizationName={data.room.organizationName}
+            logoUrl={data.room.logoUrl}
+          />
           <p className="break-words text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
             {data.room.title}
           </p>

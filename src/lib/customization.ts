@@ -37,6 +37,8 @@ type RoomTheme = {
 };
 
 const themeIds: Set<string> = new Set(ROOM_THEMES.map((theme) => theme.id));
+const DATA_LOGO_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[a-z0-9+/=]+$/i;
+const MAX_DATA_LOGO_LENGTH = 250_000;
 
 export function getThemePreset(value: unknown) {
   return typeof value === "string" && themeIds.has(value)
@@ -63,6 +65,37 @@ export function cleanRoomText(value: unknown, maxLength: number) {
   }
 
   return value.trim().replace(/\s+/g, " ").slice(0, maxLength);
+}
+
+export function sanitizeLogoUrl(value: unknown) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (
+    normalized.length <= MAX_DATA_LOGO_LENGTH &&
+    DATA_LOGO_PATTERN.test(normalized)
+  ) {
+    return normalized;
+  }
+
+  try {
+    const url = new URL(normalized);
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString();
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
 }
 
 export function getThemeById(themePreset: string | undefined) {

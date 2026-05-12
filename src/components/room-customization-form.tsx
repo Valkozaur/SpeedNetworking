@@ -68,6 +68,29 @@ export function RoomCustomizationForm({ room, categories }: RoomCustomizationFor
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-900">Organization name</span>
+          <input
+            name="organizationName"
+            defaultValue={room.organizationName}
+            placeholder="European Bank for Reconstruction and Development"
+            className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--room-accent)] focus:ring-4 focus:ring-emerald-100"
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-900">Logo URL</span>
+          <input
+            name="logoUrl"
+            type="url"
+            defaultValue={room.logoUrl}
+            placeholder="https://example.com/logo.png"
+            className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--room-accent)] focus:ring-4 focus:ring-emerald-100"
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-2">
           <span className="text-sm font-semibold text-slate-900">Theme</span>
           <select
             name="themePreset"

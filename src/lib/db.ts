@@ -41,10 +41,18 @@ async function createSchema(client: Pool | PoolClient) {
       questions jsonb NOT NULL DEFAULT '[]'::jsonb,
       subtitle text NOT NULL DEFAULT '',
       host_name text NOT NULL DEFAULT '',
+      organization_name text NOT NULL DEFAULT '',
+      logo_url text NOT NULL DEFAULT '',
       theme_preset text NOT NULL DEFAULT 'emerald',
       accent_color text NOT NULL DEFAULT '#059669',
       created_at timestamptz NOT NULL DEFAULT now()
     );
+  `);
+
+  await client.query(`
+    ALTER TABLE rooms
+      ADD COLUMN IF NOT EXISTS organization_name text NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS logo_url text NOT NULL DEFAULT '';
   `);
 
   await client.query(`

@@ -83,6 +83,11 @@ export function AdminRoomLibrary() {
               <h2 className="truncate text-lg font-black tracking-tight text-slate-950">
                 {room.title}
               </h2>
+              {room.organizationName ? (
+                <p className="mt-1 truncate text-sm font-semibold text-slate-600">
+                  {room.organizationName}
+                </p>
+              ) : null}
               <p className="mt-1 text-sm font-semibold text-slate-500">
                 Join code {room.joinCode}
               </p>
