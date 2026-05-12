@@ -1,7 +1,7 @@
-# Speed Networking Passport
+# Speed Networking Categories
 
-Mobile-first speed networking game where participants collect passport stamps
-by scanning target QR badges after conversations.
+Mobile-first speed networking game where participants scan each other after
+conversations, self-submit category claims, and admins approve final results.
 
 ## Local Development
 

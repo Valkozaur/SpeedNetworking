@@ -43,7 +43,7 @@ export default async function TargetBadgesPage({ params, searchParams }: BadgePa
               <ArrowLeft className="h-4 w-4" />
               Back to dashboard
             </Link>
-            <h1 className="mt-3 text-3xl font-black tracking-tight">Target QR sheets</h1>
+            <h1 className="mt-3 text-3xl font-black tracking-tight">People QR sheets</h1>
           </div>
           <div className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-semibold text-white">
             <Printer className="h-4 w-4" />
@@ -62,19 +62,24 @@ export default async function TargetBadgesPage({ params, searchParams }: BadgePa
               >
                 <div className="mb-4">
                   <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
-                    Target QR badge
+                    Person QR badge
                   </p>
                   <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
                     {target.name}
                   </h2>
+                  {target.jobPosition ? (
+                    <p className="mt-1 text-sm font-semibold text-slate-500">
+                      {target.jobPosition}
+                    </p>
+                  ) : null}
                 </div>
 
-                <QrCode value={targetUrl} alt={`Target QR for ${target.name}`} size={250} />
+                <QrCode value={targetUrl} alt={`Person QR for ${target.name}`} size={250} />
 
                 <div className="mt-4 grid gap-2 text-sm leading-6 text-slate-600">
                   <p>
-                    Participants open their passport, scan this QR after a
-                    conversation, and collect this stamp.
+                    Participants scan this QR after a conversation, then choose
+                    the category this person helped them complete.
                   </p>
                   <p
                     className="rounded-md bg-emerald-50 p-3 text-center text-lg font-black tracking-[0.2em] text-emerald-800"

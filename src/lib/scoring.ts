@@ -61,10 +61,10 @@ export function rankParticipants(
 }
 
 export const MILESTONES = [
-  { key: "25", label: "Quarter stamp", threshold: 0.25 },
+  { key: "25", label: "First set", threshold: 0.25 },
   { key: "50", label: "Halfway", threshold: 0.5 },
   { key: "75", label: "Almost there", threshold: 0.75 },
-  { key: "100", label: "Full passport", threshold: 1 },
+  { key: "100", label: "Full board", threshold: 1 },
 ] as const;
 
 export function getMilestones(score: number, targetTotal: number) {

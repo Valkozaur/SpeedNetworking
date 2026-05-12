@@ -4,7 +4,13 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { createRoom, joinParticipant, updateRoomCustomization } from "@/lib/rooms";
+import {
+  createRoom,
+  joinParticipant,
+  reviewCategoryClaim,
+  updateRoomCustomization,
+  type ClaimStatus,
+} from "@/lib/rooms";
 
 export type ActionState = {
   error?: string;
@@ -79,4 +85,18 @@ export async function updateRoomCustomizationAction(
   }
 
   return {};
+}
+
+export async function reviewCategoryClaimAction(
+  roomId: string,
+  adminToken: string,
+  claimId: string,
+  status: ClaimStatus,
+  formData: FormData,
+) {
+  const noteValue = formData.get("adminNote");
+  const adminNote = typeof noteValue === "string" ? noteValue : "";
+
+  await reviewCategoryClaim(roomId, adminToken, claimId, status, adminNote);
+  revalidatePath(`/admin/${roomId}`);
 }

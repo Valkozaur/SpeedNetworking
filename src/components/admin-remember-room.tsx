@@ -11,7 +11,6 @@ type AdminRememberRoomProps = {
     joinCode: string;
     adminToken: string;
     accentColor: string;
-    backgroundImageUrl: string;
   };
 };
 
@@ -23,13 +22,11 @@ export function AdminRememberRoom({ room }: AdminRememberRoomProps) {
       joinCode: room.joinCode,
       adminToken: room.adminToken,
       accentColor: room.accentColor,
-      backgroundImageUrl: room.backgroundImageUrl,
       updatedAt: new Date().toISOString(),
     });
   }, [
     room.accentColor,
     room.adminToken,
-    room.backgroundImageUrl,
     room.id,
     room.joinCode,
     room.title,

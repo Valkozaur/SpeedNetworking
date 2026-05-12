@@ -44,20 +44,25 @@ export default async function TargetPage({ params }: TargetPageProps) {
           <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-slate-950">
             {data.target.name}
           </h1>
+          {data.target.jobPosition ? (
+            <p className="mt-1 break-words text-base font-semibold text-slate-600">
+              {data.target.jobPosition}
+            </p>
+          ) : null}
           {data.room.subtitle ? (
             <p className="mt-2 break-words text-lg font-semibold leading-7 text-slate-800">
               {data.room.subtitle}
             </p>
           ) : null}
           <p className="mt-2 text-base leading-7 text-slate-600">
-            Participants should open their passport and scan this QR after a
-            conversation to collect this stamp.
+            Scan this QR after a conversation, then choose which category this
+            person helped you complete.
           </p>
 
           <div className="mt-5">
             <QrCode
               value={targetUrl}
-              alt={`Target QR for ${data.target.name}`}
+              alt={`Person QR for ${data.target.name}`}
               size={300}
             />
           </div>

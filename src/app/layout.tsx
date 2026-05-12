@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Speed Networking Passport",
-  description: "Mobile-first speed networking game with QR passport stamps.",
+  title: "Speed Networking Categories",
+  description: "Mobile-first speed networking game with QR category claims.",
 };
 
 export default function RootLayout({

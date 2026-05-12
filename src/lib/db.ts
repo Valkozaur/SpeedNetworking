@@ -43,10 +43,14 @@ async function createSchema(client: Pool | PoolClient) {
       host_name text NOT NULL DEFAULT '',
       theme_preset text NOT NULL DEFAULT 'emerald',
       accent_color text NOT NULL DEFAULT '#059669',
-      background_image_url text NOT NULL DEFAULT '',
-      background_overlay text NOT NULL DEFAULT 'soft',
       created_at timestamptz NOT NULL DEFAULT now()
     );
+  `);
+
+  await client.query(`
+    ALTER TABLE rooms
+      DROP COLUMN IF EXISTS background_image_url,
+      DROP COLUMN IF EXISTS background_overlay;
   `);
 
   await client.query(`
@@ -54,6 +58,7 @@ async function createSchema(client: Pool | PoolClient) {
       id text PRIMARY KEY,
       room_id text NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
       name text NOT NULL,
+      job_position text NOT NULL DEFAULT '',
       scanner_token text NOT NULL UNIQUE,
       fallback_code text NOT NULL,
       sort_order integer NOT NULL DEFAULT 0,
@@ -68,11 +73,28 @@ async function createSchema(client: Pool | PoolClient) {
       id text PRIMARY KEY,
       room_id text NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
       display_name text NOT NULL,
+      first_name text NOT NULL DEFAULT '',
+      last_name text NOT NULL DEFAULT '',
+      job_position text NOT NULL DEFAULT '',
       participant_token text NOT NULL UNIQUE,
       fallback_code text NOT NULL,
+      target_id text REFERENCES targets(id) ON DELETE SET NULL,
       created_at timestamptz NOT NULL DEFAULT now(),
       UNIQUE (room_id, fallback_code)
     );
+  `);
+
+  await client.query(`
+    ALTER TABLE targets
+      ADD COLUMN IF NOT EXISTS job_position text NOT NULL DEFAULT '';
+  `);
+
+  await client.query(`
+    ALTER TABLE participants
+      ADD COLUMN IF NOT EXISTS target_id text REFERENCES targets(id) ON DELETE SET NULL,
+      ADD COLUMN IF NOT EXISTS first_name text NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS last_name text NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS job_position text NOT NULL DEFAULT '';
   `);
 
   await client.query(`
@@ -86,10 +108,56 @@ async function createSchema(client: Pool | PoolClient) {
     );
   `);
 
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id text PRIMARY KEY,
+      room_id text NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      title text NOT NULL,
+      sort_order integer NOT NULL DEFAULT 0,
+      active boolean NOT NULL DEFAULT true,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+  `);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS category_claims (
+      id text PRIMARY KEY,
+      room_id text NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+      category_id text NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+      participant_id text NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+      target_id text NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
+      status text NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+      admin_note text NOT NULL DEFAULT '',
+      reviewed_at timestamptz,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+  `);
+
   await client.query(`CREATE INDEX IF NOT EXISTS targets_room_id_idx ON targets(room_id);`);
   await client.query(`CREATE INDEX IF NOT EXISTS participants_room_id_idx ON participants(room_id);`);
+  await client.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS participants_target_id_unique_idx
+      ON participants(target_id)
+      WHERE target_id IS NOT NULL;
+  `);
   await client.query(`CREATE INDEX IF NOT EXISTS claims_room_id_idx ON claims(room_id);`);
   await client.query(`CREATE INDEX IF NOT EXISTS claims_participant_id_idx ON claims(participant_id);`);
+  await client.query(`CREATE INDEX IF NOT EXISTS categories_room_id_idx ON categories(room_id);`);
+  await client.query(`CREATE INDEX IF NOT EXISTS category_claims_room_id_idx ON category_claims(room_id);`);
+  await client.query(`CREATE INDEX IF NOT EXISTS category_claims_participant_id_idx ON category_claims(participant_id);`);
+  await client.query(`CREATE INDEX IF NOT EXISTS category_claims_target_id_idx ON category_claims(target_id);`);
+  await client.query(`CREATE INDEX IF NOT EXISTS category_claims_category_id_idx ON category_claims(category_id);`);
+  await client.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS category_claims_active_category_unique_idx
+      ON category_claims(participant_id, category_id)
+      WHERE status <> 'rejected';
+  `);
+  await client.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS category_claims_active_target_unique_idx
+      ON category_claims(participant_id, target_id)
+      WHERE status <> 'rejected';
+  `);
 }
 
 export async function ensureSchema(client?: PoolClient) {

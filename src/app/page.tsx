@@ -9,15 +9,15 @@ export default function Home() {
           <div className="grid gap-6">
             <div className="inline-flex w-fit items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
               <QrCode className="h-4 w-4" />
-              Mobile networking passport
+              Mobile category game
             </div>
             <div className="grid gap-4">
               <h1 className="max-w-2xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
                 Run a speed networking game from any phone.
               </h1>
               <p className="max-w-xl text-lg leading-8 text-slate-600">
-                Create a room, print a QR badge for each target, and let
-                participants collect passport stamps by scanning the people they meet.
+                Create a room, define the categories, and let participants scan
+                the people they meet to build a live leaderboard.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -45,7 +45,7 @@ export default function Home() {
 
           <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
             <div className="grid gap-3">
-              {["Meet", "Scan", "Stamp", "Win"].map((step, index) => (
+              {["Meet", "Scan", "Choose", "Review"].map((step, index) => (
                 <div
                   key={step}
                   className="flex items-center gap-4 rounded-md border border-slate-100 bg-slate-50 p-4"
@@ -59,10 +59,10 @@ export default function Home() {
                       {index === 0
                         ? "Participant starts a real conversation."
                         : index === 1
-                          ? "Participant scans the target QR."
+                          ? "Participant scans the other person's QR."
                           : index === 2
-                            ? "The passport unlocks a target stamp."
-                            : "First full passport takes the trophy."}
+                            ? "They pick the category this chat completed."
+                            : "Admin judges claims and confirms the winner."}
                     </p>
                   </div>
                 </div>
@@ -72,7 +72,8 @@ export default function Home() {
               <div className="flex gap-3">
                 <Trophy className="mt-0.5 h-5 w-5 shrink-0" />
                 <p className="text-sm font-semibold leading-6">
-                  Winner logic is simple: collect one stamp from every active target.
+                  Live ranking is provisional. Final results use admin-approved
+                  category claims.
                 </p>
               </div>
             </div>

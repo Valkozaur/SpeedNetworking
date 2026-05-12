@@ -22,12 +22,12 @@ export default function NewRoomPage() {
               Admin setup
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-950">
-              Create a networking passport room
+              Create a category collection room
             </h1>
             <p className="max-w-2xl text-base leading-7 text-slate-600">
-              Add the target people participants must meet. After creation, the
-              app generates a secret admin link, participant join link, and a
-              QR badge for every target.
+              Define the categories participants should collect. Everyone who
+              joins receives a personal QR code, and the admin can review claims
+              before choosing the final winner.
             </p>
           </div>
 

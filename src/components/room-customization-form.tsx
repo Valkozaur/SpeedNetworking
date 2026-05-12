@@ -1,19 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
-import { Image as ImageIcon, Loader2, Palette, Save } from "lucide-react";
+import { Loader2, Palette, Save } from "lucide-react";
 
 import { updateRoomCustomizationAction, type ActionState } from "@/app/actions";
-import { ROOM_OVERLAYS, ROOM_THEMES } from "@/lib/customization";
-import type { Room } from "@/lib/rooms";
+import { ROOM_THEMES } from "@/lib/customization";
+import type { Category, Room } from "@/lib/rooms";
 
 type RoomCustomizationFormProps = {
   room: Room;
+  categories: Category[];
 };
 
 const initialState: ActionState = {};
 
-export function RoomCustomizationForm({ room }: RoomCustomizationFormProps) {
+export function RoomCustomizationForm({ room, categories }: RoomCustomizationFormProps) {
   const [state, action, pending] = useActionState(
     updateRoomCustomizationAction.bind(null, room.id, room.adminToken),
     initialState,
@@ -30,8 +31,8 @@ export function RoomCustomizationForm({ room }: RoomCustomizationFormProps) {
             Customize room
           </h2>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Tune the passport tone before people join. These settings affect the
-            participant room, target QR pages, and admin dashboard.
+            Tune the room before people join. These settings affect participant
+            screens, person QR pages, and the admin dashboard.
           </p>
         </div>
       </div>
@@ -93,42 +94,16 @@ export function RoomCustomizationForm({ room }: RoomCustomizationFormProps) {
       </div>
 
       <label className="grid gap-2">
-        <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <ImageIcon className="h-4 w-4" />
-          Background image URL
-        </span>
-        <input
-          name="backgroundImageUrl"
-          defaultValue={room.backgroundImageUrl}
-          placeholder="https://..."
-          inputMode="url"
-          className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--room-accent)] focus:ring-4 focus:ring-emerald-100"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-semibold text-slate-900">Image treatment</span>
-        <select
-          name="backgroundOverlay"
-          defaultValue={room.backgroundOverlay}
-          className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-[var(--room-accent)] focus:ring-4 focus:ring-emerald-100"
-        >
-          {ROOM_OVERLAYS.map((overlay) => (
-            <option key={overlay.id} value={overlay.id}>
-              {overlay.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-semibold text-slate-900">Example questions</span>
+        <span className="text-sm font-semibold text-slate-900">Conversation categories</span>
         <textarea
-          name="questions"
-          rows={5}
-          defaultValue={room.questions.join("\n")}
+          name="categories"
+          rows={6}
+          defaultValue={categories.filter((category) => category.active).map((category) => category.title).join("\n")}
           className="rounded-md border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-slate-950 outline-none transition focus:border-[var(--room-accent)] focus:ring-4 focus:ring-emerald-100"
         />
+        <span className="text-sm text-slate-500">
+          One category per line. Removing a category hides it from new claims.
+        </span>
       </label>
 
       {state.error ? (

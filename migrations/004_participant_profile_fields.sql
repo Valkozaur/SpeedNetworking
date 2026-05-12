@@ -1,0 +1,7 @@
+ALTER TABLE participants
+  ADD COLUMN IF NOT EXISTS first_name text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS last_name text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS job_position text NOT NULL DEFAULT '';
+
+ALTER TABLE targets
+  ADD COLUMN IF NOT EXISTS job_position text NOT NULL DEFAULT '';

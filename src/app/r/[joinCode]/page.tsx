@@ -1,10 +1,20 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { Check, Circle, Medal, QrCode, Trophy } from "lucide-react";
+import {
+  Check,
+  Circle,
+  Clock3,
+  Medal,
+  QrCode as QrCodeIcon,
+  Trophy,
+  XCircle,
+} from "lucide-react";
 
 import { JoinRoomForm } from "@/components/join-room-form";
 import { ParticipantAutoRefresh } from "@/components/participant-auto-refresh";
 import { ParticipantScanner } from "@/components/participant-scanner";
+import { QrCode } from "@/components/qr-code";
+import { absoluteUrl } from "@/lib/app-url";
 import { roomThemeStyle } from "@/lib/customization";
 import { getMilestones } from "@/lib/scoring";
 import { getParticipantState, getPublicRoom } from "@/lib/rooms";
@@ -20,6 +30,30 @@ type RoomPageProps = {
     pt?: string;
   }>;
 };
+
+function statusTone(status: "pending" | "approved" | "rejected") {
+  if (status === "approved") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-900";
+  }
+
+  if (status === "rejected") {
+    return "border-red-200 bg-red-50 text-red-900";
+  }
+
+  return "border-amber-200 bg-amber-50 text-amber-900";
+}
+
+function statusIcon(status: "pending" | "approved" | "rejected") {
+  if (status === "approved") {
+    return <Check className="h-5 w-5" />;
+  }
+
+  if (status === "rejected") {
+    return <XCircle className="h-5 w-5" />;
+  }
+
+  return <Clock3 className="h-5 w-5" />;
+}
 
 export default async function RoomPage({ params, searchParams }: RoomPageProps) {
   const { joinCode } = await params;
@@ -47,9 +81,9 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
         >
           <div className="w-full min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur sm:p-7">
             <div className="mb-6 grid gap-3">
-              <div className="inline-flex w-fit items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                <QrCode className="h-4 w-4" />
-                Passport room
+              <div className="inline-flex w-fit items-center gap-2 rounded-md bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700">
+                <QrCodeIcon className="h-4 w-4" />
+                Category collection
               </div>
               <h1 className="break-words text-3xl font-black tracking-tight text-slate-950">
                 {publicRoom.room.title}
@@ -60,11 +94,11 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
                 </p>
               ) : null}
               <p className="text-base leading-7 text-slate-600">
-                Join to open your passport scanner. After each conversation,
-                scan that target person&apos;s QR badge to unlock one stamp.
+                Join to get your own QR, scan people after conversations, and
+                collect the room categories.
               </p>
               <p className="text-sm font-semibold text-slate-500">
-                {publicRoom.targets.length} target stamps to collect
+                {publicRoom.categories.length} categories to collect
               </p>
             </div>
             <JoinRoomForm joinCode={publicRoom.room.joinCode} />
@@ -74,11 +108,23 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
     );
   }
 
-  const collected = state.targets.filter((target) => target.claimedAt).length;
-  const total = state.targets.length;
-  const progress = total > 0 ? Math.round((collected / total) * 100) : 0;
-  const milestones = getMilestones(collected, total);
+  const submitted = state.categories.filter(
+    (category) => category.claim && category.claim.status !== "rejected",
+  ).length;
+  const approved = state.categories.filter(
+    (category) => category.claim?.status === "approved",
+  ).length;
+  const pending = state.categories.filter(
+    (category) => category.claim?.status === "pending",
+  ).length;
+  const rejected = state.categories.filter(
+    (category) => category.claim?.status === "rejected",
+  ).length;
+  const total = state.categories.length;
+  const progress = total > 0 ? Math.round((submitted / total) * 100) : 0;
+  const milestones = getMilestones(submitted, total);
   const topFive = state.leaderboard.slice(0, 5);
+  const targetUrl = state.target ? absoluteUrl(`/target/${state.target.scannerToken}`) : "";
 
   return (
     <main
@@ -92,12 +138,17 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
       >
         <section className="grid min-w-0 gap-5">
           <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
-            <p className="break-words text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
+            <p className="break-words text-sm font-bold uppercase tracking-[0.16em] text-sky-700">
               {state.room.title}
             </p>
             <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-slate-950">
               {state.participant.displayName}
             </h1>
+            {state.participant.jobPosition ? (
+              <p className="mt-1 break-words text-base font-semibold text-slate-600">
+                {state.participant.jobPosition}
+              </p>
+            ) : null}
             {state.room.subtitle ? (
               <p className="mt-2 break-words text-lg font-semibold leading-7 text-slate-800">
                 {state.room.subtitle}
@@ -109,9 +160,34 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
               </p>
             ) : null}
             <p className="mt-2 text-base text-slate-600">
-              Scan a target QR badge after each conversation to stamp your passport.
+              Chat first, scan the person, then pick the category you completed.
             </p>
           </div>
+
+          {state.target ? (
+            <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-black tracking-tight">My QR</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Show this after a conversation so others can scan you.
+                  </p>
+                </div>
+                <QrCodeIcon className="h-5 w-5 text-sky-600" />
+              </div>
+              <QrCode
+                value={targetUrl}
+                alt={`Personal QR for ${state.participant.displayName}`}
+                size={220}
+              />
+              <div className="mt-4 rounded-md bg-slate-50 p-3 text-center">
+                <p className="text-xs font-semibold text-slate-500">Fallback code</p>
+                <p className="mt-1 text-2xl font-black tracking-[0.18em] text-slate-950">
+                  {state.target.fallbackCode}
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           <ParticipantScanner
             participantToken={state.participant.participantToken}
@@ -123,19 +199,33 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
               <div>
                 <h2 className="text-xl font-black tracking-tight">Progress</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {collected}/{total} stamps collected
+                  {submitted}/{total} categories submitted
                 </p>
               </div>
               <div className="text-3xl font-black text-slate-950">{progress}%</div>
             </div>
             <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all"
+                className="h-full rounded-full bg-sky-500 transition-all"
                 style={{
                   width: `${progress}%`,
                   backgroundColor: state.room.accentColor,
                 }}
               />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-md bg-amber-50 p-3 text-amber-800">
+                <p className="text-2xl font-black">{pending}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em]">Pending</p>
+              </div>
+              <div className="rounded-md bg-emerald-50 p-3 text-emerald-800">
+                <p className="text-2xl font-black">{approved}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em]">Approved</p>
+              </div>
+              <div className="rounded-md bg-red-50 p-3 text-red-800">
+                <p className="text-2xl font-black">{rejected}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em]">Rejected</p>
+              </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {milestones.map((milestone) => (
@@ -143,7 +233,7 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
                   key={milestone.key}
                   className={
                     milestone.unlocked
-                      ? "rounded-md border border-emerald-200 bg-emerald-50 p-3 text-emerald-800"
+                      ? "rounded-md border border-sky-200 bg-sky-50 p-3 text-sky-800"
                       : "rounded-md border border-slate-200 bg-slate-50 p-3 text-slate-500"
                   }
                 >
@@ -152,7 +242,7 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
                     <p className="text-sm font-bold">{milestone.label}</p>
                   </div>
                   <p className="mt-1 text-xs font-medium">
-                    {milestone.required} stamps
+                    {milestone.required} categories
                   </p>
                 </div>
               ))}
@@ -162,35 +252,43 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
 
         <section className="grid min-w-0 gap-5">
           <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
-            <h2 className="text-xl font-black tracking-tight">Passport stamps</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {state.targets.map((target) => {
-                const unlocked = Boolean(target.claimedAt);
+            <h2 className="text-xl font-black tracking-tight">Category board</h2>
+            <div className="mt-4 grid gap-3">
+              {state.categories.map((category) => {
+                const claim = category.claim;
+                const activeClaim = claim && claim.status !== "rejected";
 
                 return (
                   <div
-                    key={target.id}
+                    key={category.id}
                     className={
-                      unlocked
-                        ? "rounded-md border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"
-                        : "rounded-md border border-slate-200 bg-white p-4 text-slate-500"
+                      claim
+                        ? `rounded-md border p-4 ${statusTone(claim.status)}`
+                        : "rounded-md border border-slate-200 bg-white p-4 text-slate-600"
                     }
                   >
                     <div className="flex items-start gap-3">
                       <div
                         className={
-                          unlocked
-                            ? "grid h-9 w-9 shrink-0 place-items-center rounded-md bg-emerald-600 text-white"
+                          activeClaim
+                            ? "grid h-9 w-9 shrink-0 place-items-center rounded-md bg-white/80 text-current"
                             : "grid h-9 w-9 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-400"
                         }
                       >
-                        {unlocked ? <Check className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
+                        {claim ? statusIcon(claim.status) : <Circle className="h-5 w-5" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold">{target.name}</p>
+                        <p className="break-words font-bold">{category.title}</p>
                         <p className="mt-1 text-sm">
-                          {unlocked ? "Stamp collected" : "Locked"}
+                          {claim
+                            ? `${claim.status === "rejected" ? "Rejected" : claim.status} with ${claim.targetName}`
+                            : "Open"}
                         </p>
+                        {claim?.status === "rejected" && claim.adminNote ? (
+                          <p className="mt-2 rounded-md bg-white/70 p-2 text-sm">
+                            {claim.adminNote}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -214,7 +312,10 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
 
           <div className="min-w-0 rounded-md border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-black tracking-tight">Leaderboard</h2>
+              <div>
+                <h2 className="text-xl font-black tracking-tight">Live dashboard</h2>
+                <p className="mt-1 text-sm text-slate-500">Provisional ranking by submitted categories.</p>
+              </div>
               <Trophy className="h-5 w-5 text-amber-500" />
             </div>
             <div className="mt-4 grid gap-2">
@@ -228,12 +329,12 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
                       #{entry.rank} {entry.displayName}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {entry.score}/{entry.targetTotal} stamps
+                      {entry.score}/{entry.targetTotal} categories
                     </p>
                   </div>
                   {entry.isComplete ? (
-                    <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-700">
-                      Complete
+                    <span className="rounded-md bg-sky-100 px-2 py-1 text-xs font-bold text-sky-700">
+                      Submitted all
                     </span>
                   ) : null}
                 </div>
