@@ -1,0 +1,39 @@
+"use client";
+
+import { useEffect } from "react";
+
+import { saveAdminRoom } from "@/lib/local-admin-rooms";
+
+type AdminRememberRoomProps = {
+  room: {
+    id: string;
+    title: string;
+    joinCode: string;
+    adminToken: string;
+    accentColor: string;
+    backgroundImageUrl: string;
+  };
+};
+
+export function AdminRememberRoom({ room }: AdminRememberRoomProps) {
+  useEffect(() => {
+    void saveAdminRoom({
+      roomId: room.id,
+      title: room.title,
+      joinCode: room.joinCode,
+      adminToken: room.adminToken,
+      accentColor: room.accentColor,
+      backgroundImageUrl: room.backgroundImageUrl,
+      updatedAt: new Date().toISOString(),
+    });
+  }, [
+    room.accentColor,
+    room.adminToken,
+    room.backgroundImageUrl,
+    room.id,
+    room.joinCode,
+    room.title,
+  ]);
+
+  return null;
+}

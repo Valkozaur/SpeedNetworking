@@ -1,0 +1,48 @@
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://speed_networking:speed_networking@db:5432/speed_networking
+      POSTGRES_SSL: "false"
+    command: ["node", "scripts/migrate.mjs"]
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://speed_networking:speed_networking@db:5432/speed_networking
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
+      POSTGRES_SSL: "false"
+    ports:
+      - "${APP_PORT:-3001}:3000"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: speed_networking
+      POSTGRES_USER: speed_networking
+      POSTGRES_PASSWORD: speed_networking
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U speed_networking -d speed_networking"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "5433:5432"
+    volumes:
+      - speed_networking_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  speed_networking_data:

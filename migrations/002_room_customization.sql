@@ -1,0 +1,7 @@
+ALTER TABLE rooms
+  ADD COLUMN IF NOT EXISTS subtitle text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS host_name text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS theme_preset text NOT NULL DEFAULT 'emerald',
+  ADD COLUMN IF NOT EXISTS accent_color text NOT NULL DEFAULT '#059669',
+  ADD COLUMN IF NOT EXISTS background_image_url text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS background_overlay text NOT NULL DEFAULT 'soft';
